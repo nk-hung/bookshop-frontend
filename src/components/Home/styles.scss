@@ -3,5 +3,18 @@
 
   .wrapper {
     margin: 0 300px;
+
+    &_search {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      // padding: 10px 0;
+
+      .input_container {
+        display: flex;
+        column-gap: 20px;
+        align-items: center;
+      }
+    }
   }
 }

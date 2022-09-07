@@ -1,0 +1,32 @@
+.header {
+  width: 100%;
+  background-color: #43291f;
+  padding: 10px 200px;
+
+  .container {
+    width: 80%;
+    // margin: 10px 200px;
+
+    &_wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+
+      .info {
+        display: flex;
+        column-gap: 50px;
+      }
+
+      .social {
+        display: flex;
+        color: #fff;
+        column-gap: 20px;
+
+        a {
+          color: #fff;
+        }
+      }
+    }
+  }
+}

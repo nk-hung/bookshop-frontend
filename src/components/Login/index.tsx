@@ -1,23 +1,36 @@
 import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hook";
-import { loginAsync, selectorUser } from "../../redux/reducer/auth.reducer";
+import {
+  getUserInfoAsync,
+  loginAsync,
+  selectorAuth,
+  selectorUser,
+} from "../../redux/reducer/auth.reducer";
 
 const LoginScreen = () => {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  // const selector = useAppSelector;
+  const selector = useAppSelector;
+
+  const user = selector(selectorAuth);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  if (user) {
+    console.log("user:", user);
+    navigate("/");
+  }
+
   const handleSubmitted = async () => {
     console.log("form data:", { email, password });
-    dispatch(loginAsync({ email, password }));
+    const res = await dispatch(loginAsync({ email, password })).unwrap();
+    console.log("res:", res);
+    if (res.token) {
+      dispatch(getUserInfoAsync(res.token));
+    }
   };
-
-  // if (user) {
-  //   console.log("user:", user);
-  //   navigate("/");
-  // }
 
   return (
     <div>

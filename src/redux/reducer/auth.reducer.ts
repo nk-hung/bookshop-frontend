@@ -1,10 +1,8 @@
-import {
-  $CombinedState,
-  createAsyncThunk,
-  createSlice,
-} from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { stat } from "fs";
+import jwtDecode from "jwt-decode";
+import { act } from "react-dom/test-utils";
 import { Status } from "../../shared/enums/status";
 import { Login } from "../../shared/interfaces/login";
 import { RootState } from "../store";
@@ -25,12 +23,30 @@ export const loginAsync = createAsyncThunk("login", async (body: Login) => {
   const res = await fetch("http://localhost:5000/auth/signin", {
     method: "POST",
     body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
   console.log("before!!!", res);
 
-  // const data = await res.data.json();
-  // return data;
+  const data = await res.json();
+  return data;
 });
+
+export const getUserInfoAsync = createAsyncThunk(
+  "getInfo",
+  async (token: string) => {
+    const { sub }: any = jwtDecode(token);
+    const res = await axios({
+      method: "GET",
+      url: `http://localhost:5000/users/${sub}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res;
+  }
+);
 
 const initialState = {
   token: "",
@@ -51,20 +67,32 @@ export const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(loginAsync.pending, (state) => {
-      state.status = Status.Idle;
-    });
-    // .addCase(loginAsync.fulfilled, (state, action) => {
-    //   if (action.payload.status === "success") {
-    //     state.status = Status.Success;
-    //     state.token = action.payload.auth.token;
-    //   }
-    // })
-    // .addCase(loginAsync.rejected, (state, action) => {
-    //   // Tắt trạng thái loading, lưu thông báo lỗi vào store
-    //   // state.error = action.payload.message;
-    //   console.log("payload:", action.payload);
-    // });
+    builder
+      .addCase(loginAsync.pending, (state) => {
+        state.status = Status.Idle;
+      })
+      .addCase(loginAsync.fulfilled, (state, action) => {
+        if (action.payload.status === "success") {
+          state.status = Status.Success;
+          state.token = action.payload.token;
+        }
+      })
+      .addCase(loginAsync.rejected, (state) => {
+        state.status = Status.Failed;
+      })
+      .addCase(getUserInfoAsync.pending, (state) => {
+        state.status = Status.Idle;
+      })
+      .addCase(getUserInfoAsync.fulfilled, (state, action) => {
+        state.info = action.payload.data;
+        state.status = Status.Success;
+        console.log("action payload:", action.payload);
+      })
+      .addCase(getUserInfoAsync.rejected, (state, action) => {
+        // Tắt trạng thái loading, lưu thông báo lỗi vào store
+        state.status = Status.Failed;
+        console.log("payload:", action.payload);
+      });
   },
 });
 
